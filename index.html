@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>STOMPR</title>
+    <meta name="viewport" content="width=800, initial-scale=1">
+    <script src="jspsych/jspsych.js"></script>
+    <script src="jspsych/jspsychsheet.js"></script>
+    <script src="jspsych/plugin-survey-text.js"></script>
+    <script src="jspsych/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="jspsych/plugin-html-slider-response.js"></script>
+    <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+    <link href="jspsych/jspsychsheet.css" rel="stylesheet" type="text/css" />
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <style>
+        .jspsych-display-element {
+            font-size: 24px;
+        }
+        .jspsych-html-slider-response-label {
+        font-size: 12px; /* Adjust this value to your preference */
+        }
+    </style>
+</head>
+  <body></body>
+  <script>
+    var jsPsych = initJsPsych({
+        show_progress_bar: true,
+        on_finish: function () {
+            url = "https://script.google.com/macros/s/AKfycbzgyw5IFkm-N0FzXTm6TYxK0ldOuhMyfVbWm2Hg1HaW7oALzZRB1vr6c2w2lIsVpGAuZA/exec";
+            jsPsychSheet.uploadData(url, jsPsych.data.get().csv())
+        }
+    });
+
+    var timeline = [];
+
+    var idInputTrial = {
+            type: jsPsychSurveyText,
+            questions: [
+                {prompt: 'Student ID:', placeholder: '000000', required: true},
+            ],
+            on_finish: function(data) {
+                data.rt = undefined;
+                data.stimulus = undefined;
+                data.time_elapsed = undefined;
+                data.internal_node_id = undefined;
+                data.trial_type = undefined;
+            }
+    };
+    timeline.push(idInputTrial);
+
+    var genres = ['Alternative','Bluegrass','Blues','Classical','Country','Dance/Electronica','Folk','Funk','Gospel',
+                    'Heavy Metal','World','Jazz','New Age','Oldies','Opera','Pop','Punk','Rap/Hip-Hop','Reggae','Religious',
+                    'Rock','Soul/R&B','Soundtracks/Theme Song'];
+
+    for (let i = 0; i < genres.length; i++) {
+        let genre = genres[i];
+ 
+        var slider = {
+            type: jsPsychHtmlSliderResponse,
+            stimulus: `<p>Please indicate your basic preference for this genre of music using the scale provided</p><br>
+                        <p><strong>${genre}</strong></p>`,
+            labels: ['Dislike strongly<br>(1)', 'Dislike moderately<br>(2)', 'Dislike a little<br>(3)',
+                    'Neither like nor dislike<br>(4)', 'Like a little<br>(5)', 'Like moderately<br>(6)', 'Like strongly<br>(7)'],
+            step: 0.01,
+            slider_width: 1000,
+            require_movement: true,
+            prompt: `<p><br><br></p>`,
+            button_label: 'Next',
+            on_finish: function(data){
+                data.slider_start = undefined;
+                data.rt = undefined;
+                data.stimulus = undefined;
+                data.time_elapsed = undefined;
+                data.internal_node_id = undefined;
+                data.trial_type = undefined;
+                },
+            data: { trial_id: genre}
+        }
+        timeline.push(slider);
+    }
+
+    var debrief = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: `<div style="text-align: left;font-size: 0.8em;">The STOMP is a 14-item scale assessing preferences in music genres.<br>
+            The STOMPR is a revised version of the scale assessing preferences for 23 genres.
+            <p>If you want to read more about the research behind this,<br>
+                <a href="https://doi.org/10.1037/a0022406">Rentfrow, P. J., Goldberg, L. R., & Levitin, D. J. (2011). The structure of musical preferences: A five-factor model. Journal of Personality and Social Psychology, 100, 1139-1157.</a><br>
+                <a href="https://doi.org/10.1111/j.1467-6494.2010.00662.x">Rentfrow, P. J., Goldberg, L. R., & Zilca, R. (2011). Listening, watching, and reading: The structure and correlates of entertainment preferences. Journal of Personality, 79, 223-257.</a><br>
+                <a href="https://doi.org/10.1111/j.1467-9280.2006.01691.x">Rentfrow, P. J., & Gosling, S. D. (2006). Message in a ballad: The role of music preferences in interpersonal perception. Psychological Science, 17, 236-242.</a><br>
+                <a href="https://doi.org/10.1177/0305735607070382">Rentfrow, P. J., & Gosling, S. D. (2007). The content and validity of music-genre stereotypes among college students. Psychology of Music, 35, 306-326.</a><br>
+                Rentfrow, P. J., & McDonald, J. A. (2009). Music preferences and personality. In P. N. Juslin & J. A. Sloboda (Eds.), Handbook of music and emotion (pp. 669-695). Oxford, UK: Oxford University Press.<br>
+                <a href="https://doi.org/10.1177/1368430209102845">Rentfrow, P. J., McDonald, J. A., & Oldmeadow, J. A. (2009). You are what you listen to: Young people’s stereotypes about music fans. Group Processes and Intergroup Relations, 12, 329-344.</a></p></div>`,
+        choices: ['View my results'],
+        on_finish: function(data){
+                data.rt = undefined;
+                data.stimulus = undefined;
+                data.time_elapsed = undefined;
+                data.internal_node_id = undefined;
+                data.trial_type = undefined;
+                data.response = undefined;
+                },
+    }
+    timeline.push(debrief);
+
+    var end = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: function() {
+            allData = jsPsych.data.get().values();
+            alternativeData = allData.filter(function(value) {
+                return value.trial_id === 'Alternative';
+            });
+            bluegrassData = allData.filter(function(value) {
+                return value.trial_id === 'Bluegrass';
+            });
+            bluesData = allData.filter(function(value) {
+                return value.trial_id === 'Blues';
+            });
+            classicalData = allData.filter(function(value) {
+                return value.trial_id === 'Classical';
+            });
+            countryData = allData.filter(function(value) {
+                return value.trial_id === 'Country';
+            });
+            danceData = allData.filter(function(value) {
+                return value.trial_id === 'Dance/Electronica';
+            });
+            folkData = allData.filter(function(value) {
+                return value.trial_id === 'Folk';
+            });
+            funkData = allData.filter(function(value) {
+                return value.trial_id === 'Funk';
+            });
+            gospelData = allData.filter(function(value) {
+                return value.trial_id === 'Gospel';
+            });
+            metalData = allData.filter(function(value) {
+                return value.trial_id === 'Heavy Metal';
+            });
+            worldData = allData.filter(function(value) {
+                return value.trial_id === 'World';
+            });
+            jazzData = allData.filter(function(value) {
+                return value.trial_id === 'Jazz';
+            });
+            newageData = allData.filter(function(value) {
+                return value.trial_id === 'New Age';
+            });
+            oldiesData = allData.filter(function(value) {
+                return value.trial_id === 'Oldies';
+            });
+            operaData = allData.filter(function(value) {
+                return value.trial_id === 'Opera';
+            });
+            popData = allData.filter(function(value) {
+                return value.trial_id === 'Pop';
+            });
+            punkData = allData.filter(function(value) {
+                return value.trial_id === 'Punk';
+            });
+            rapData = allData.filter(function(value) {
+                return value.trial_id === 'Rap/Hip-Hop';
+            });
+            reggaeData = allData.filter(function(value) {
+                return value.trial_id === 'Reggae';
+            });
+            religiousData = allData.filter(function(value) {
+                return value.trial_id === 'Religious';
+            });
+            rockData = allData.filter(function(value) {
+                return value.trial_id === 'Rock';
+            });
+            soulData = allData.filter(function(value) {
+                return value.trial_id === 'Soul/R&B';
+            });
+            soundtrackData = allData.filter(function(value) {
+                return value.trial_id === 'Soundtracks/Theme Song';
+            });
+            
+            AlternativeValue = alternativeData[0].response;
+            BluegrassValue = bluegrassData[0].response;
+            BluesValue = bluesData[0].response;
+            ClassicalValue = classicalData[0].response;
+            CountryValue = countryData[0].response;
+            DanceValue = danceData[0].response;
+            FolkValue = folkData[0].response;
+            FunkValue = funkData[0].response;
+            GospelValue = gospelData[0].response;
+            MetalValue = metalData[0].response;
+            WorldValue = worldData[0].response;
+            JazzValue = jazzData[0].response;
+            NewageValue = newageData[0].response;
+            OldiesValue = oldiesData[0].response;
+            OperaValue = operaData[0].response;
+            PopValue = popData[0].response;
+            PunkValue = punkData[0].response;
+            RapValue = rapData[0].response;
+            ReggaeValue = reggaeData[0].response;
+            ReligiousValue = religiousData[0].response;
+            RockValue = rockData[0].response;
+            SoulValue = soulData[0].response;
+            SoundtrackValue = soundtrackData[0].response;
+
+            // Calculate the average of the means
+            refcom = Math.round((BluegrassValue + BluesValue + ClassicalValue + FolkValue + WorldValue + JazzValue + NewageValue + OperaValue) /8);
+            intreb = Math.round((AlternativeValue + MetalValue + PunkValue + RockValue) /4);
+            upbcon = Math.round((CountryValue + GospelValue + OldiesValue + PopValue + ReligiousValue + SoundtrackValue) /6);
+            ergrhy = Math.round((DanceValue + FunkValue + RapValue + ReggaeValue + SoulValue) /5);
+            mellow = Math.round((DanceValue + NewageValue + WorldValue) /3);
+            unpretentious = Math.round((PopValue + CountryValue + ReligiousValue) /3);
+            sophisticated = Math.round((BluesValue + JazzValue + BluegrassValue + FolkValue + ClassicalValue + GospelValue + OperaValue) /7);
+            intense = Math.round((RockValue + PunkValue + AlternativeValue + MetalValue) /4);
+            contemporary = Math.round((RapValue + SoulValue + FunkValue + ReggaeValue) /4);
+
+            return `<p>Your musical preference is:<br><br><br>
+                    ${refcom}% reflective and complex.<br>
+                    ${intreb}% intense and rebellious.<br>
+                    ${upbcon}% upbeat and conventional.<br>
+                    ${ergrhy}% energetic and rhythmic.</p>
+                    <br>
+                    <p>You are also<br><br>
+                        ${mellow}% mellow, ${unpretentious}% unpretentious, ${sophisticated}% sophisticated, ${intense}% intense,
+                        and ${contemporary}% contemporary in your musical preferences.</p>
+                    `
+        },
+        choices: ['End survey and upload my data'],
+        on_finish: function(data){
+                data.rt = undefined;
+                data.stimulus = undefined;
+                data.time_elapsed = undefined;
+                data.internal_node_id = undefined;
+                data.trial_type = undefined;
+                data.response = undefined;
+                data.refcom = refcom;
+                data.intreb = intreb;
+                data.upbcon = upbcon;
+                data.ergrhy = ergrhy;
+                data.mellow = mellow;
+                data.unpretentious = unpretentious;
+                data.sophisticated = sophisticated;
+                data.intense = intense;
+                data.contemporary = contemporary;
+                },
+    }
+    timeline.push(end);
+
+    var all_data = jsPsych.data.get();
+
+    console.log(all_data.csv());
+
+    jsPsych.run(timeline);
+
+  </script>
+</html>
